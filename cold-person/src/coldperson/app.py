@@ -12,7 +12,7 @@ session_key = web.AppKey('session', aiohttp.ClientSession)
 
 
 @routes.post("/bff/order")
-async def place_order(request):
+async def place_order(request: web.Request) -> web.Response:
 
     status = 200
     try:
@@ -31,19 +31,19 @@ async def place_order(request):
 
 
 @routes.get("/healthz")
-async def healthz(request):
+async def healthz(request: web.Request) -> web.Response:
     print(type(request))
     return web.Response(status=200, text="everything's gravy baby\n")
 
 
-async def app_session(app):
+async def app_session(app: web.Application):
     # Use one session for the life of the app
     async with aiohttp.ClientSession() as session:
         app[session_key] = session
         yield
 
 
-def make_app():
+def make_app() -> web.Application:
     app = web.Application()
     app.add_routes(routes)
     app.cleanup_ctx.append(app_session)

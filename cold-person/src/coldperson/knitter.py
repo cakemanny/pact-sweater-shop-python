@@ -1,7 +1,7 @@
 import logging
 import os
 from dataclasses import asdict, dataclass
-from typing import Any, Optional
+from typing import Any
 import json
 
 import aiohttp
@@ -45,7 +45,7 @@ class Knitter:
         self.session = session
 
     def _endpoint(self, p: str) -> str:
-        base_url = os.getenv("KNITTER_BASE_URL", "http://localhost:1234")
+        base_url = os.getenv("KNITTER_BASE_URL", "http://localhost:8081")
         assert base_url
         return f"{base_url}{p}"
 

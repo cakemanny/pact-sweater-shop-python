@@ -10,7 +10,9 @@ build/
 .coverage*
 !.coveragerc
 
+# pact stuff
 *.log
+/pacts
 
 # virtual environment nonsense
 .venv

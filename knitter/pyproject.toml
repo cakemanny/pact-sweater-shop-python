@@ -1,0 +1,32 @@
+[project]
+name        = "knitter"
+description = "A service that can knit a sweater given some wool"
+version     = "0.1.0"
+
+dependencies = [
+  "typing-extensions ~= 4.0 ; python_version < '3.10'",
+  "aiohttp[speedups] ~= 3.0",
+]
+[project.optional-dependencies]
+test = [
+  "pytest            ~= 7.0",
+  "pytest-asyncio    ~= 0.0",
+  "pytest-aiohttp    ~= 1.0",
+]
+dev = [
+  "pact-python[types]",
+  "pact-python[test]",
+  "black          ==23.12.1",
+  "flake8         ~= 7.0",
+  "isort          ~= 5.0",
+]
+
+[project.scripts]
+knitter-serve = "knitter.cli.serve:main"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+asyncio_mode = "strict"
+testpaths = [
+  "tests",
+]

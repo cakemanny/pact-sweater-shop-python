@@ -1,7 +1,8 @@
-from typing import Generator, Any
-import pytest
+from typing import Any, Generator
+
 import aiohttp
-from pact import Consumer, Provider
+import pytest
+from pact import Consumer, Provider, Term
 from pact.pact import Pact
 
 from coldperson.knitter import Knitter, Sweater, SweaterOrder
@@ -30,7 +31,11 @@ def test_sweater_order_deserialization():
 def pact() -> Generator[Pact, Any, None]:
     pact = Consumer("ColdPerson").has_pact_with(
         Provider("Knitter"),
-        pact_dir='pacts'
+        pact_dir="pacts",
+        host_name="localhost",
+        # Port 1234 is the default port of PACT
+        # aiohttp.test_utils has an unused_port function if this breaks
+        port=1234,
     )
 
     pact.start_service()
@@ -39,7 +44,13 @@ def pact() -> Generator[Pact, Any, None]:
 
 
 @pytest.mark.asyncio
-async def test_knitter__get_sweater(pact):
+async def test_knitter__get_sweater(pact, monkeypatch: pytest.MonkeyPatch):
+    # This is not actually the test that Holly writes
+    # She writes a test that again tests the coldperson's endpoint
+    # and uses the pact a mock
+
+    monkeypatch.setenv("KNITTER_BASE_URL", f"http://{pact.host_name}:{pact.port}")
+
     expected = {
         "colour": "white",
         "order_number": 28,
@@ -54,7 +65,11 @@ async def test_knitter__get_sweater(pact):
             headers={"Content-Type": "application/json"},
         )
         .will_respond_with(
-            200, body=expected, headers={"Content-Type": "application/json"}
+            200,
+            body=expected,
+            headers={
+                "Content-Type": Term("application/json(; .*)?", "application/json"),
+            }
         )
     )
 
