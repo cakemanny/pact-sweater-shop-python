@@ -50,25 +50,25 @@ class Knitter:
         return f"{base_url}{p}"
 
     async def get_sweater(self, order: SweaterOrder) -> Sweater:
-        request_data = json.dumps({
+        request_data = {
             "colour": order.colour,
             "order_number": order.order_number,
-        })
+        }
         async with self.session.post(
             self._endpoint("/sweater/order"),
-            headers={'Content-Type': 'application/json'},
-            data=request_data,
+            json=request_data,
         ) as resp:
             if resp.status >= 400:
-                try:
-                    body = await resp.text()
-                except Exception:
-                    body = None
-                logger.error('%s', json.dumps({
-                    'message': 'Placing order failed',
-                    'resp': str(resp),
-                    'body': str(body)
-                }))
-                raise Exception('Error placing order with knitter')
+                logger.error(
+                    "%s",
+                    json.dumps(
+                        {
+                            "message": "Placing order failed",
+                            "resp": str(resp),
+                            "body": await resp.text(),
+                        }
+                    ),
+                )
+                raise Exception("Error placing order with knitter")
             data = await resp.json()
             return Sweater(data["colour"], data["order_number"])

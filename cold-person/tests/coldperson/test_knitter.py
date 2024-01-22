@@ -28,7 +28,7 @@ def test_sweater_order_deserialization():
 
 
 @pytest.fixture(scope="session")
-def pact() -> Generator[Pact, Any, None]:
+def pact_server() -> Generator[Pact, Any, None]:
     pact = Consumer("ColdPerson").has_pact_with(
         Provider("Knitter"),
         pact_dir="pacts",
@@ -43,13 +43,20 @@ def pact() -> Generator[Pact, Any, None]:
     pact.stop_service()
 
 
+@pytest.fixture
+def knitter_pact(pact_server: Pact, monkeypatch: pytest.MonkeyPatch) -> Pact:
+    # Monkeypatching cannot go in the session scoped pact_server fixture
+    monkeypatch.setenv(
+        "KNITTER_BASE_URL", f"http://{pact_server.host_name}:{pact_server.port}"
+    )
+    return pact_server
+
+
 @pytest.mark.asyncio
-async def test_knitter__get_sweater(pact, monkeypatch: pytest.MonkeyPatch):
+async def test_knitter__get_sweater(knitter_pact: Pact):
     # This is not actually the test that Holly writes
     # She writes a test that again tests the coldperson's endpoint
     # and uses the pact a mock
-
-    monkeypatch.setenv("KNITTER_BASE_URL", f"http://{pact.host_name}:{pact.port}")
 
     expected = {
         "colour": "white",
@@ -57,23 +64,23 @@ async def test_knitter__get_sweater(pact, monkeypatch: pytest.MonkeyPatch):
     }
 
     (
-        pact.upon_receiving("an order for a white sweater")
+        knitter_pact.upon_receiving("an order for a white sweater")
         .with_request(
             "POST",
             "/sweater/order",
-            body={"colour": "white", "order_number": 28},
             headers={"Content-Type": "application/json"},
+            body={"colour": "white", "order_number": 28},
         )
         .will_respond_with(
             200,
             body=expected,
             headers={
                 "Content-Type": Term("application/json(; .*)?", "application/json"),
-            }
+            },
         )
     )
 
-    with pact:
+    with knitter_pact:
         async with aiohttp.ClientSession() as session:
             knitter = Knitter(session)
             result = await knitter.get_sweater(

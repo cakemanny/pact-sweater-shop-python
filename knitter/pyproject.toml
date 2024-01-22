@@ -6,6 +6,7 @@ version     = "0.1.0"
 dependencies = [
   "typing-extensions ~= 4.0 ; python_version < '3.10'",
   "aiohttp[speedups] ~= 3.0",
+  "attrs             ~= 23.0"
 ]
 [project.optional-dependencies]
 test = [
