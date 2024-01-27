@@ -1,8 +1,7 @@
-import json
-
+from aiohttp import test_utils
 import pytest
 import pytest_asyncio
-from pact import Consumer, Provider, Like
+from pact import Consumer, Provider, Like, Term
 from pact.pact import Pact
 
 
@@ -21,8 +20,7 @@ def pact_server():
         Provider("Farmer"),
         pact_dir="pacts",
         host_name="localhost",
-        # Anyway the default
-        port=1234,
+        port=test_utils.unused_port(),
     )
     pact.start_service()
     yield pact
@@ -46,7 +44,6 @@ async def test_healthz(client):
 
 @pytest.mark.asyncio
 async def test_knit_sweater(client, farmer_pact: Pact):
-
     (
         farmer_pact.upon_receiving("an order for some wool")
         .with_request(
@@ -62,7 +59,9 @@ async def test_knit_sweater(client, farmer_pact: Pact):
         )
         .will_respond_with(
             200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
+            headers={
+                "Content-Type": Term("application/json(; .*)?", "application/json")
+            },
             body=Like(
                 {
                     "colour": "white",
@@ -74,12 +73,10 @@ async def test_knit_sweater(client, farmer_pact: Pact):
     with farmer_pact:
         resp = await client.post(
             "/sweater/order",
-            data=json.dumps(
-                {
-                    "colour": "white",
-                    "order_number": 142,
-                }
-            ),
+            json={
+                "colour": "white",
+                "order_number": 142,
+            },
         )
         assert resp.status == 200
         assert await resp.json() == {

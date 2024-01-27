@@ -1,6 +1,7 @@
 from typing import Any, Generator
 
 import aiohttp
+from aiohttp import test_utils
 import pytest
 from pact import Consumer, Provider, Term
 from pact.pact import Pact
@@ -33,9 +34,7 @@ def pact_server() -> Generator[Pact, Any, None]:
         Provider("Knitter"),
         pact_dir="pacts",
         host_name="localhost",
-        # Port 1234 is the default port of PACT
-        # aiohttp.test_utils has an unused_port function if this breaks
-        port=1234,
+        port=test_utils.unused_port(),
     )
 
     pact.start_service()

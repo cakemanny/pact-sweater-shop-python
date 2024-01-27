@@ -4,7 +4,6 @@ import os
 from typing import Optional
 
 import aiohttp
-from aiohttp.hdrs import CONTENT_TYPE
 from attr import asdict, define, field, validators
 
 logger = logging.getLogger(__name__)

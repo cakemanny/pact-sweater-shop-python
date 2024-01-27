@@ -31,8 +31,7 @@ async def place_order(request: web.Request) -> web.Response:
 
 
 @routes.get("/healthz")
-async def healthz(request: web.Request) -> web.Response:
-    print(type(request))
+async def healthz(_: web.Request) -> web.Response:
     return web.Response(status=200, text="everything's gravy baby\n")
 
 

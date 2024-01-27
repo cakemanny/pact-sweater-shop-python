@@ -1,5 +1,3 @@
-import json
-
 import pytest
 import pytest_asyncio
 
@@ -30,12 +28,15 @@ async def test_place_order(client, monkeypatch):
         async def get_sweater(self, order: SweaterOrder):
             return Sweater(order.colour, order.order_number)
 
-    monkeypatch.setattr('coldperson.app.Knitter', FakeKnitter)
+    monkeypatch.setattr("coldperson.app.Knitter", FakeKnitter)
 
-    resp = await client.post("/bff/order", data=json.dumps({
-        "colour": "white",
-        "order_number": 28,
-    }))
+    resp = await client.post(
+        "/bff/order",
+        json={
+            "colour": "white",
+            "order_number": 28,
+        },
+    )
 
     assert resp.status == 200
     assert await resp.json() == {
