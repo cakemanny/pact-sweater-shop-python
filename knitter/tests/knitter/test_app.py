@@ -14,7 +14,7 @@ async def client(aiohttp_client):
     return client
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def pact_server():
     pact = Consumer("Knitter").has_pact_with(
         Provider("Farmer"),
