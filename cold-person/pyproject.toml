@@ -9,13 +9,13 @@ dependencies = [
 ]
 [project.optional-dependencies]
 test = [
+  "pact-python[types]      ",
+  "pact-python[test]       ",
   "pytest            ~= 7.0",
   "pytest-asyncio    ~= 0.0",
   "pytest-aiohttp    ~= 1.0",
 ]
 dev = [
-  "pact-python[types]",
-  "pact-python[test]",
   "black          ==23.12.1",
   "flake8         ~= 7.0",
   "isort          ~= 5.0",
