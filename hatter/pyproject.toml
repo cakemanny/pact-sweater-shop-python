@@ -1,0 +1,6 @@
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+  "tests",
+]
+DJANGO_SETTINGS_MODULE = "hatterproject.settings"
