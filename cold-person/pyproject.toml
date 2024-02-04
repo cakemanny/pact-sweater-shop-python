@@ -9,6 +9,7 @@ dependencies = [
 ]
 [project.optional-dependencies]
 test = [
+  "pactman",
   "pact-python[types]      ",
   "pact-python[test]       ",
   "pytest            ~= 7.0",

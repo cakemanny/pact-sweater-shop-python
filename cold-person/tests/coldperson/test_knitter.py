@@ -1,10 +1,12 @@
 from typing import Any, Generator
+import socket
+import time
 
 import aiohttp
 from aiohttp import test_utils
 import pytest
-from pact import Consumer, Provider, Term
-from pact.pact import Pact
+from pactman import Consumer, Provider, Term
+from pactman import Pact
 
 from coldperson.knitter import Knitter, Sweater, SweaterOrder
 
@@ -28,6 +30,19 @@ def test_sweater_order_deserialization():
         )
 
 
+def wait_connect(host, port, timeout=1):
+    t = 0.01
+
+    while (t := t * 2) < timeout:
+        try:
+            with socket.socket() as s:
+                s.connect((host, port))
+            return
+        except ConnectionRefusedError:
+            time.sleep(t)
+    raise TimeoutError(f"timed out after 2s waiting to connect to {host}:{port}")
+
+
 @pytest.fixture(scope="session")
 def pact_server() -> Generator[Pact, Any, None]:
     pact = Consumer("ColdPerson").has_pact_with(
@@ -35,9 +50,12 @@ def pact_server() -> Generator[Pact, Any, None]:
         pact_dir="pacts",
         host_name="localhost",
         port=test_utils.unused_port(),
+        use_mocking_server=True,
     )
 
     pact.start_service()
+    # start_service doesn't block until The mocking server is listening
+    wait_connect(pact.host_name, pact.port)
     yield pact
     pact.stop_service()
 
@@ -45,9 +63,7 @@ def pact_server() -> Generator[Pact, Any, None]:
 @pytest.fixture
 def knitter_pact(pact_server: Pact, monkeypatch: pytest.MonkeyPatch) -> Pact:
     # Monkeypatching cannot go in the session scoped pact_server fixture
-    monkeypatch.setenv(
-        "KNITTER_BASE_URL", f"http://{pact_server.host_name}:{pact_server.port}"
-    )
+    monkeypatch.setenv("KNITTER_BASE_URL", pact_server.uri)
     return pact_server
 
 
@@ -63,7 +79,8 @@ async def test_knitter__get_sweater(knitter_pact: Pact):
     }
 
     (
-        knitter_pact.upon_receiving("an order for a white sweater")
+        knitter_pact.given(None)  # pactman always assume given has been called
+        .upon_receiving("an order for a white sweater")
         .with_request(
             "POST",
             "/sweater/order",
