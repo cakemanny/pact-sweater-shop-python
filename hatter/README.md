@@ -49,3 +49,8 @@ This ones a django project, so first you wanna
 python manage.py migrate
 python manage.py runserver 0:8083
 ```
+
+
+## Useful links
+- [Django docs](https://docs.djangoproject.com/en/4.2/)
+- [Django Rest Framework docs](https://www.django-rest-framework.org/)
