@@ -28,7 +28,7 @@ def test_sweater_order_deserialization():
         )
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def pact_server() -> Generator[Pact, Any, None]:
     pact = Consumer("ColdPerson").has_pact_with(
         Provider("Knitter"),
@@ -45,9 +45,7 @@ def pact_server() -> Generator[Pact, Any, None]:
 @pytest.fixture
 def knitter_pact(pact_server: Pact, monkeypatch: pytest.MonkeyPatch) -> Pact:
     # Monkeypatching cannot go in the session scoped pact_server fixture
-    monkeypatch.setenv(
-        "KNITTER_BASE_URL", f"http://{pact_server.host_name}:{pact_server.port}"
-    )
+    monkeypatch.setenv("KNITTER_BASE_URL", pact_server.uri)
     return pact_server
 
 

@@ -1,14 +1,4 @@
 import pytest
-import pytest_asyncio
-
-
-@pytest_asyncio.fixture
-async def client(aiohttp_client):
-    from coldperson.app import make_app
-
-    app = make_app()
-    client = await aiohttp_client(app)
-    return client
 
 
 @pytest.mark.asyncio
@@ -23,6 +13,8 @@ async def test_place_order(client, monkeypatch):
 
     class FakeKnitter:
         def __init__(self, *args, **kwargs) -> None:
+            _ = args
+            _ = kwargs
             pass
 
         async def get_sweater(self, order: SweaterOrder):

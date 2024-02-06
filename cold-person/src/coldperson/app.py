@@ -3,6 +3,7 @@ import logging
 import aiohttp
 from aiohttp import web
 
+from coldperson.hatter import Hatter
 from coldperson.knitter import Knitter, SweaterOrder
 
 routes = web.RouteTableDef()
@@ -14,20 +15,29 @@ session_key = web.AppKey('session', aiohttp.ClientSession)
 @routes.post("/bff/order")
 async def place_order(request: web.Request) -> web.Response:
 
-    status = 200
     try:
         body = await request.json()
         order = SweaterOrder.from_dict(body)
     except Exception as e:
         logger.warning('Bad request: %s', e)
-        status = 400
         body = {'error': '???'}
-        return web.json_response(data=body, status=status)
+        return web.json_response(body, status=400)
 
     knitter = Knitter(request.app[session_key])
     sweater = await knitter.get_sweater(order)
 
-    return web.json_response(data=sweater.to_dict(), status=status)
+    return web.json_response(data=sweater.to_dict())
+
+
+@routes.post("/bff/order/hat")
+async def place_order_for_hat(request: web.Request) -> web.Response:
+
+    order = await request.json()
+
+    hatter = Hatter(request.app[session_key])
+    hat = await hatter.get_hat(order)
+
+    return web.json_response(hat.to_dict())
 
 
 @routes.get("/healthz")
